@@ -48,19 +48,33 @@ n_length_chunks_fast([H|T],[],Pos,Max) ->
     n_length_chunks_fast(T,[[H]],Pos+1,Max).
 
 %% convert X,Y indexing to list indexing
-to_list_index(X,Y) ->
+xy_to_list(X,Y) ->
     (Y*9)+X.
 
 %% extraction functions
 %% horizontal
-extract_horizontal(L,Y) -> 
-    lists:map(fun(X) -> lists:nth(to_list_index(X,Y) + 1,L) end, range(0,9)).
+get_row(L,Y) -> 
+    lists:map(fun(X) -> lists:nth(xy_to_list(X,Y) + 1,L) end, range(0,9)).
 %% vertical
-extract_vertical(L,X) ->
-    lists:map(fun(Y) -> lists:nth(to_list_index(X,Y) + 1,L) end, range(0,9)).
+get_column(L,X) ->
+    lists:map(fun(Y) -> lists:nth(xy_to_list(X,Y) + 1,L) end, range(0,9)).
 %% 3*3 square
-extract_square(L,N) ->
+get_square(L,N) ->
     BigX = N rem 3,
     BigY = N div 3,
-    S = to_list_index(BigX * 3, BigY * 3),
+    S = xy_to_list(BigX * 3, BigY * 3),
     lists:map(fun(X) -> lists:nth(S + (X div 3) * 9 + (X rem 3) + 1,L) end, range(0,9)).
+
+%% verify list
+is_complete(L) ->
+    45 == util:reduce(fun(Acc,X) -> Acc + X end, 0, L).
+%% get list from board, than verify
+is_complete(F,B) ->
+    lists:all(fun(X) -> is_complete(F(B,X)) end, util:range(0,9)).
+
+%% verify board
+verify(B) ->
+    case lists:all(fun(F) -> is_complete(F,B) end,[fun get_row/2, fun get_column/2, fun get_square/2]) of
+        true -> good;
+        false -> bad
+    end.
