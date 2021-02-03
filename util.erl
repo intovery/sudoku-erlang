@@ -18,7 +18,7 @@ reduce(_,Acc,[]) -> Acc;
 reduce(F,Acc,[H|T]) -> reduce(F,F(Acc,H),T).
 
 replace(N,D,L) ->
-    lists:sublist(L,N) ++ [D] ++ lists:nthtail(N+1,L).
+    lists:sublist(L,N-1) ++ [D] ++ lists:nthtail(N,L).
 
 factorial(0) -> 1;
 factorial(N) -> N * factorial(N-1).
@@ -30,16 +30,6 @@ conditional(O) ->
     end.
 conditional(T,F) ->
     conditional(#{true=>T,false=>F}).
-
-print() ->
-    receive
-        {_,L} ->
-            io:format("received => ~p~n",[L]),
-            print();
-        terminate ->
-            ok
-    end,
-    io:format("process terminated.~n").
 
 perms([]) -> [[]];
 perms(L)  -> [[H|T] || H <- L, T <- perms(L--[H])].
@@ -87,4 +77,45 @@ accfunc(Cond,Acc) ->
         true -> Acc;
         false -> fun(X) -> accfunc(Cond,[X|Acc])
         end
+    end.
+
+%% code from "stack overflow"
+%% https://stackoverflow.com/questions/12534898/splitting-a-list-in-equal-sized-chunks-in-erlang/15008490
+chunks(List,Len) ->
+  LeaderLength = case length(List) rem Len of
+      0 -> 0;
+      N -> Len - N
+  end,
+  Leader = lists:duplicate(LeaderLength,undefined),
+  chunks(Leader ++ lists:reverse(List),[],0,Len).
+
+chunks([],Acc,_,_) -> Acc;
+chunks([H|T],Acc,Pos,Max) when Pos==Max ->
+    chunks(T,[[H] | Acc],1,Max);
+chunks([H|T],[HAcc | TAcc],Pos,Max) ->
+    chunks(T,[[H | HAcc] | TAcc],Pos+1,Max);
+chunks([H|T],[],Pos,Max) ->
+    chunks(T,[[H]],Pos+1,Max).
+
+current_time() ->
+    {H,M,S} = time(),
+    timer:hms(H,M,S).
+
+measure_time(F) ->
+    Old = current_time(),
+    R = F(),
+    New = current_time(),
+    {(New - Old),R}.
+
+divide_conquer(Subject,F_divide,F_execute,F_combine) ->
+    L = F_divide(Subject),
+    io:format("LENGTH => ~p~n",[length(L)]),
+    F_combine(lists:map(fun(X) -> F_execute(X) end,L)).
+
+test(Acc_Result, []) ->
+    Acc_Result;
+test(Acc_Result, [H|T]) ->
+    case ((H rem 2) == 1) of
+        true -> test([H|Acc_Result],T);
+        false -> test(Acc_Result,T)
     end.
