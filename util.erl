@@ -111,11 +111,3 @@ divide_conquer(Subject,F_divide,F_execute,F_combine) ->
     L = F_divide(Subject),
     io:format("LENGTH => ~p~n",[length(L)]),
     F_combine(lists:map(fun(X) -> F_execute(X) end,L)).
-
-test(Acc_Result, []) ->
-    Acc_Result;
-test(Acc_Result, [H|T]) ->
-    case ((H rem 2) == 1) of
-        true -> test([H|Acc_Result],T);
-        false -> test(Acc_Result,T)
-    end.

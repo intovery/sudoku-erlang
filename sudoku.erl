@@ -3,26 +3,18 @@
 -import(proc,[storage/1]).
 -compile(export_all).
 
-%% check string includes "\r\n"
-is_carriage_return(L) ->
-    length(L) /= 1.
+delete_CRLF(L) when length(L) == 1 -> [L];
+delete_CRLF(L) ->
+    [[hd(L)],[lists:last(L)]].
 
 %% eliminate "\r\n" that has been included from file:read_file/1
-stabilize(L) ->
-    Result = util:reduce(
-        fun(Acc,X) -> 
-            case is_carriage_return(X) of
-                true -> util:reduce(fun(Acc_,X_) -> [X_|Acc_] end, Acc, string:tokens(X,"\r\n"));
-                false -> [X|Acc]
-            end
-        end, [], L),
-    lists:reverse(Result).
+stabilize(L) -> util:reduce(fun(Acc,X) -> Acc ++ delete_CRLF(X) end, [], L).
 
-%% convert file binarg8y to list
+%% convert file binary to list
 read_board(F) ->
     {ok,Bin} = F,
     L = string:tokens(binary_to_list(Bin),","),
-    lists:reverse(util:reduce(fun(Acc,X) -> [list_to_integer(X)|Acc] end,[],stabilize(L))).
+    lists:map(fun(X) -> list_to_integer(X) end, stabilize(L)).
 
 %% check duplication
 is_duplicated(L) ->
@@ -30,112 +22,73 @@ is_duplicated(L) ->
     Sorted = length(lists:usort(lists:filter(fun(X) -> X/=0 end,L))),
     Origin /= Sorted.
 
-%% convert X,Y indexing to list indexing
-xy_to_list(X,0) -> X;
-xy_to_list(X,Y) ->
-    (Y*9)+X.
-
 %% extraction functions
 %% horizontal
-get_row(Y,L) -> 
-    lists:map(fun(X) -> lists:nth(xy_to_list(X,Y-1),L) end, lists:seq(1,9)).
+get_row(I) when I > 0 ->
+    lists:map(fun(N) -> N + ((I-1)*9) end,lists:seq(1,9)).
+get_row(I,L) when I > 0 ->
+    lists:map(fun(N) -> lists:nth(N,L) end,get_row(I)).
 %% vertical
-get_column(X,L) ->
-    lists:map(fun(Y) -> lists:nth(xy_to_list(X,Y-1),L) end, lists:seq(1,9)).
+get_column(I) when I > 0 ->
+    lists:map(fun(N) -> I + ((N-1)*9) end,lists:seq(1,9)).
+get_column(I,L) when I > 0 ->
+    lists:map(fun(N) -> lists:nth(N,L) end,get_column(I)).
 %% 3*3 square
-get_square(N,L) ->
-    BigX = (N-1) rem 3,
-    BigY = (N-1) div 3,
-    S = xy_to_list(BigX * 3, BigY * 3) + 1,
-    Index = lists:map(fun(X) -> 
-        S + ((X-1) div 3) * 9 + ((X-1) rem 3) end, lists:seq(1,9)),
-    lists:map(fun(X) -> lists:nth(X,L) end, Index).
+square_start(N) when N > 0 ->
+    (((N-1) rem 3) * 3) + (((N-1) div 3) * 27).
+square_cell(N) when N > 0 ->
+    (((N-1) rem 3) + 1) + (((N-1) div 3) * 9).
+get_square(I) when I > 0 ->
+    lists:map(fun(N) -> square_start(I) + square_cell(N) end,lists:seq(1,9)).
+get_square(I,L) when I > 0 ->
+    lists:map(fun(N) -> lists:nth(N,L) end,get_square(I)).
 
 %% judge functions
-
-%% get list from board, than verify
 is_complete(F_extract,B) ->
     lists:all(fun(N) -> not is_duplicated(F_extract(N,B)) end,lists:seq(1,9)).
 
 is_verified(B) ->
-    lists:all(fun(F) -> is_complete(F,B) end,
-    [fun get_column/2, fun get_square/2]).
+    lists:all(fun(F) -> 
+        is_complete(F,B) 
+    end,[fun get_column/2, fun get_square/2]).
 
 missings(L) ->
-    util:reduce(fun(Acc,X) ->
-        case lists:member(X,L) of
-            true -> Acc;
-            false -> [X|Acc]
-        end
-    end,[],util:range(1,10)).
+    lists:filter(fun(N) ->
+        not lists:member(N,L)
+    end,lists:seq(1,9)).
 
-index_of_missing(L) ->
-    util:reduce(fun(Acc,X) -> 
-        case lists:nth(X,L) of
-            0 -> [X|Acc];
-            _ -> Acc
-        end
-    end,[],util:range(1,10)).
+fill(Row,Elems) ->
+    fill(Row,Elems,[]).
 
-fill(Elems,Row) ->
-    Indexs = lists:sort(index_of_missing(Row)),
-    util:reduce(fun(Acc,N) ->
-        I = lists:nth(N,Indexs),
-        E = lists:nth(N,Elems),
-        util:replace(I,E,Acc)
-    end,Row,util:range(1,length(Indexs))).
-
-fill_test(Row,Elems) ->
-    fill_test(Row,Elems,[]).
-
-fill_test([],_,Acc) ->
+fill([],_,Acc) ->
     lists:reverse(Acc);
-fill_test([Row_H|Row_T],[],Acc) ->
-    fill_test(Row_T,[],[Row_H|Acc]);
-fill_test([Row_H|Row_T],[Elems_H|Elems_T],Acc) ->
+fill([Row_H|Row_T],[],Acc) ->
+    fill(Row_T,[],[Row_H|Acc]);
+fill([Row_H|Row_T],[Elems_H|Elems_T],Acc) ->
     case Row_H == 0 of
-        true -> fill_test(Row_T,Elems_T,[Elems_H|Acc]);
-        false -> fill_test(Row_T,[Elems_H|Elems_T],[Row_H|Acc])
+        true -> fill(Row_T,Elems_T,[Elems_H|Acc]);
+        false -> fill(Row_T,[Elems_H|Elems_T],[Row_H|Acc])
     end.
 
 match_row_elems(Rows,Elems) ->
     lists:map(fun(N) -> 
         lists:map(fun(X) -> fill(X,lists:nth(N,Rows)) end,lists:nth(N,Elems))
-        end,util:range(1,10)).
+    end,util:range(1,10)).
 
 match(Rows,Perms) ->
     util:reduce(fun(Acc,N) ->
-        util:replace(N,fill_test(lists:nth(N,Rows),lists:nth(N,Perms)),Acc)
-        end,Rows,util:range(1,length(Perms)+1)).
-
-solutions(L) ->
-    Perms = util:perms(missings(L)),
-    lists:map(fun(P) -> fill(P,L) end, Perms).
-
-check([]) -> blank;
-check([_|_]) -> filled.
-
-to_indexes(N) ->
-    I = integer_to_list(N,9),
-    lists:map(fun(X) -> list_to_integer(X) end,util:lift(I)).
-
-build_board(L) when length(L) == 81 ->
-    L;
-build_board(L) ->
-    fun(L_next) -> build_board(L ++ L_next) end.
-
-build_board() ->
-    fun(L) -> build_board(L) end.
+        util:replace(N,fill(lists:nth(N,Rows),lists:nth(N,Perms)),Acc)
+    end,Rows,lists:seq(1,length(Perms))).
 
 analyze() ->
-    analyze("./data_baekjun.csv").
+    analyze("./data.csv").
 analyze(Name) ->
-    B = read_board(file:read_file(Name)),
-    Rows = lists:map(fun(N) -> get_row(N,B) end,util:range(1,10)),
+    Board = read_board(file:read_file(Name)),
+    Rows = lists:map(fun(N) -> get_row(N,Board) end,util:range(1,10)),
     Elems = lists:map(fun(N) ->
         util:perms(missings(lists:nth(N,Rows)))
-        end,util:range(1,10)),
-    {B,Rows,Elems}.
+        end,lists:seq(1,9)),
+    {Board,Rows,Elems}.
 
 build(Rows,Perms) ->
     build(Rows,Perms,{1,[]},[]).
@@ -155,34 +108,15 @@ build(Rows,[H|T],{Cur,Acc_Perms},Acc_Results) ->
         end
     end,Acc_Results,H).
 
-divide(L) ->
-    % Len = length(L),
-    % [lists:sublist(L,Len div 2),lists:sublist(L,(Len div 2) + 1, Len div 2)],
-    util:chunks(L,(length(L) div 2)).
-
 filter_bad_perms(Rows,Perms) ->
-    lists:map(fun(N) ->
-        Row = lists:nth(N,Rows),
-        RowPerms = lists:nth(N,Perms),
-        lists:filter(fun(X) ->
-            Replaced = util:replace(N,fill(X,Row),Rows),
+    lists:map(fun({N,Row,RowPerms}) ->
+        lists:filter(fun(Perm) ->
+            Replaced = util:replace(N,fill(Perm,Row),Rows),
             is_verified(lists:flatten(Replaced))
         end,RowPerms)
-    end,lists:seq(1,9)).
-filter_bad_perms(Replaced) ->
-    ExtFunc = [fun get_row/2, fun get_column/2, fun get_square/2],
-    Func = fun(F) -> 
-        lists:any(fun(N) ->
-            is_duplicated(F(N,Replaced))
-            end,lists:seq(1,9))
-        end,
-    lists:any(fun(F) ->
-        Func(F)
-        end,ExtFunc).
+    end,lists:zip3(lists:seq(1,9),Rows,Perms)).
 
 solve(Name) ->
     {Board,Rows,Perms} = analyze(Name),
-    NewPerms = sudoku:filter_bad_perms(Rows,Perms),
-    Results = build(Rows,NewPerms),
+    Results = build(Rows,Perms),
     {Board,Results}.
-
