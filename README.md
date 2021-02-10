@@ -1,8 +1,8 @@
 # SUDOKU with erlang
 ## from 2021-01-11
 
-Sudoku-Solver with erlang.
-It's very tiny project, made this to study erlang.
+Sudoku-Solver with Erlang.   
+It's very tiny project, made this to study Erlang.
 
 # How I used it
     Add several csv datas into folder, call function 'sudoku:solve(Name)'.
