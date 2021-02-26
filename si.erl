@@ -2,7 +2,6 @@
 -import(util,[range/2, reduce/3]).
 -compile(export_all).
 
-
 %% check duplication
 is_duplicated(L) ->
     Origin = length(lists:filter(fun(X) -> X/=0 end,L)),
