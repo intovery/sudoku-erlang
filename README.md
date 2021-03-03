@@ -19,10 +19,10 @@ Sudoku-Solver with Erlang.
 # Example
 
 ```
-1> sudoku:solve("./data/data.csv").
+1> si:solve("./data/data.csv").
 {[5,3,0,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,8,0,0,0,0,6,0,8|...],
  [[5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6|...]]}
-2> util:measure_time(fun() -> sudoku:solve("./data/data_hard.csv") end).
+2> util:measure_time(fun() -> si:solve("./data/data_hard.csv") end).
 {91000,
  {[0,0,5,3,0,0,0,0,0,8,0,0,0,0,0,0,2,0,0,7,0,0,1,0,5,0|...],
   [[1,4,5,3,2,7,6,9,8,8,3,9,6,5,4,1,2,7,6,7,2,9,1,8|...]]}}
