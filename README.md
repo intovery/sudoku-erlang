@@ -4,12 +4,20 @@
 Sudoku-Solver with Erlang.   
 It's very tiny project, made this to study Erlang.
 
+# Modules
+    - util: Utilization functions to use erlang easier
+    - si_read: Make list of integers(1~9) by reading .csv files in folder "./data"
+    - si: Functions to analyze sudoku and comeplete it
+    - parallel: Map function with spawn
+    - 
+
 # How I used it
     Add several csv datas into folder, call function 'sudoku:solve(Name)'.
     Name shows csv-data's location. If name is not valid, process throws exception error
     (no match of right hand side value).
     Once it starts, function sudoku:solve(Name) will return the list of solutions in few seconds.
     (91 sec required to solve "./data/data_hard.csv".)
+
 
 # Example
 
