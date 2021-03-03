@@ -8,8 +8,7 @@ It's very tiny project, made this to study Erlang.
     - util: Utilization functions to use erlang easier
     - si_read: Make list of integers(1~9) by reading .csv files in folder "./data"
     - si: Functions to analyze sudoku and comeplete it
-    - parallel: Map function with spawn
-    - 
+    - parallel: Map function with multi-process
 
 # How I used it
     Add several csv datas into folder, call function 'sudoku:solve(Name)'.
