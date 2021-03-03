@@ -15,14 +15,13 @@ Sudoku-Solver with Erlang.
   3. 'si_read:read_board({ok,is_binary()})' will gives you the list of elements in sudoku
   4. 'si:solve(<File Location + Name>)' will gives you solutions of sudoku
 
-
 # Example
 
 ```
 1> si:solve("./data/data.csv").
 {[5,3,0,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,8,0,0,0,0,6,0,8|...],
  [[5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6|...]]}
-2> util:measure_time(fun() -> si:solve("./data/data_hard.csv") end).
+2> timer:tc(fun() -> si:solve("./data/data_hard.csv") end).
 {91000,
  {[0,0,5,3,0,0,0,0,0,8,0,0,0,0,0,0,2,0,0,7,0,0,1,0,5,0|...],
   [[1,4,5,3,2,7,6,9,8,8,3,9,6,5,4,1,2,7,6,7,2,9,1,8|...]]}}
@@ -33,3 +32,4 @@ Sudoku-Solver with Erlang.
 - Attach XMLHttpRequest module to receive data from clients
 - Increase processing speed with multi-process
 - Preperations for process down issues(Supervisors, solution-checkpoints etc...)
+- Change board list's elements to {Index,Value}
