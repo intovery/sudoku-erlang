@@ -40,13 +40,12 @@ match(Rows,Perms) ->
 
 analyze() -> analyze("./data/data.csv").
 analyze(Name) ->
-    % Board = si_read:read_board(file:read_file(Name)),
-    % Rows = lists:map(fun(N) -> si_get:get(Board,{row,N}) end,lists:seq(1,9)),
-    % Elems = lists:map(fun(N) ->
-    %             util:perms(missings(lists:nth(N,Rows)))
-    %         end,lists:seq(1,9)),
-    % {Board,Rows,Elems}.
-    si_read:read_board(file:read_file(Name)).
+    Board = si_read:read_board(file:read_file(Name)),
+    Rows = lists:map(fun(N) -> si_get:get(Board,{row,N}) end,lists:seq(1,9)),
+    Elems = lists:map(fun(N) ->
+                util:perms(missings(lists:nth(N,Rows)))
+            end,lists:seq(1,9)),
+    {Board,Rows,Elems}.
 
 build(Rows,Perms) ->
     build(Rows,Perms,{1,[]},[]).
@@ -75,9 +74,8 @@ filter_bad_perms(Rows,Perms) ->
     end,lists:zip3(lists:seq(1,9),Rows,Perms)).
 
 solve(Name) ->
-    {Board,Rows,Perms} = analyze(Name),
-    % Results = build(Rows,Perms),
-    {Board,interpret(Board)}.
+    {Board,Rows,Perms} = si:analyze(Name),
+    si:build(Rows,Perms).
 
 mix([CL1,CL2,CL3,CL4,CL5,CL6,CL7,CL8,CL9]) ->
     [[C1,C2,C3,C4,C5,C6,C7,C8,C9] ||

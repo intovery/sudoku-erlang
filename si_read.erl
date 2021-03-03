@@ -16,4 +16,4 @@ tokenize(S) -> string:tokens(S,",").
 %% convert file binary to list
 read_board({ok,Bin}) ->
     L = tokenize(binary_to_list(Bin)),
-    {board,[list_to_integer(X) || X <- stabilize(L)]}.
+    [list_to_integer(X) || X <- stabilize(L)].
