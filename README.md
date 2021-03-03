@@ -4,16 +4,16 @@
 Sudoku-Solver with Erlang.
 
 # Modules
-    - util: Utilization functions to use erlang easier
-    - si_read: Make list of integers(1~9) by reading .csv files in folder "./data"
-    - si: Functions to analyze sudoku and comeplete it
-    - parallel: Map function with multi-process
+  - util: Utilization functions to use erlang easier
+  - si_read: Make list of integers(1~9) by reading .csv files in folder "./data"
+  - si: Functions to analyze sudoku and comeplete it
+  - parallel: Map function with multi-process
 
 # How I used it
-    1. Add .csv sudoku file into "./data" folder
-    2. Read .csv binary data
-    3. 'si_read:read_board({ok,is_binary()})' will gives you the list of elements in sudoku
-    4. 'si:solve(<File Location + Name>)' will gives you solutions of sudoku
+  1. Add .csv sudoku file into "./data" folder
+  2. Read .csv binary data
+  3. 'si_read:read_board({ok,is_binary()})' will gives you the list of elements in sudoku
+  4. 'si:solve(<File Location + Name>)' will gives you solutions of sudoku
 
 
 # Example
