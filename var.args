@@ -1,0 +1,4 @@
+-pa _build/default/lib/sudoku/ebin
+
+-eval io:write(sudoku:start()).
+-eval init:stop().

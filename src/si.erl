@@ -74,7 +74,7 @@ filter_bad_perms(Rows,Perms) ->
     end,lists:zip3(lists:seq(1,9),Rows,Perms)).
 
 solve(Name) ->
-    {Board,Rows,Perms} = si:analyze(Name),
+    {_,Rows,Perms} = si:analyze(Name),
     si:build(Rows,Perms).
 
 mix([CL1,CL2,CL3,CL4,CL5,CL6,CL7,CL8,CL9]) ->
@@ -90,6 +90,3 @@ mix([CL1,CL2,CL3,CL4,CL5,CL6,CL7,CL8,CL9]) ->
         C9 <- CL9].
 
 mix(L1,L2) -> [[E1,E2] || E1 <- L1, E2 <- L2].
-
-interpret(Board) ->
-    Rows = lists:map(fun(N) -> si_get:get(Board,{row,N}) end, lists:seq(1,9)).
