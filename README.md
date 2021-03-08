@@ -1,5 +1,4 @@
 # Sudoku Interpreter w/ Erlang
-## from 2021-01-11
 
 Sudoku Interpreter implemented by Erlang.
 
@@ -30,6 +29,7 @@ Sudoku Interpreter implemented by Erlang.
 ```
 
 # Milestones
++ Add multi-processing
 + Attach XMLHttpRequest module to receive data from clients
 + Increase processing speed with multi-process
 + Preperations for process down issues(Supervisors, solution-checkpoints etc...)

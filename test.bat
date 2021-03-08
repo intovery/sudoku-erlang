@@ -1,1 +1,1 @@
-erl -args_file var.args -noshell init stop
+erl -args_file var.args -noshell

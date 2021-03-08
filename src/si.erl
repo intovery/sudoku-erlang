@@ -1,5 +1,6 @@
 -module(si).
 -import(util,[range/2, reduce/3]).
+-export([get/2,get_fun/1]).
 -compile(export_all).
 
 %% check duplication
@@ -15,7 +16,7 @@ is_complete(F_extract,B) ->
 is_verified(B) ->
     lists:all(fun(F) -> 
         is_complete(F,B) 
-    end,[si_get:get_fun(column), si_get:get_fun(square)]).
+    end,[si:get_fun(column), si:get_fun(square)]).
 
 missings(L_Exists) ->
     missings(lists:seq(1,9),L_Exists).
@@ -41,7 +42,7 @@ match(Rows,Perms) ->
 analyze() -> analyze("./data/data.csv").
 analyze(Name) ->
     Board = si_read:read_board(file:read_file(Name)),
-    Rows = lists:map(fun(N) -> si_get:get(Board,{row,N}) end,lists:seq(1,9)),
+    Rows = lists:map(fun(N) -> si:get(Board,{row,N}) end,lists:seq(1,9)),
     Elems = lists:map(fun(N) ->
                 util:perms(missings(lists:nth(N,Rows)))
             end,lists:seq(1,9)),
@@ -90,3 +91,55 @@ mix([CL1,CL2,CL3,CL4,CL5,CL6,CL7,CL8,CL9]) ->
         C9 <- CL9].
 
 mix(L1,L2) -> [[E1,E2] || E1 <- L1, E2 <- L2].
+
+
+%% get functions
+
+%% extraction functions
+-spec get(list(), tuple()) -> list().
+get(L,{row,N}) -> get_row(N,L);
+get(L,{column,N}) -> get_column(N,L);
+get(L,{square,N}) -> get_square(N,L).
+
+-spec get_fun(atom()) -> function().
+get_fun(Method) ->
+    fun(N,L) -> get(L,{Method,N}) end.
+
+%% horizontal
+-spec get_row(integer()) -> list().
+get_row(Index) when Index > 0 ->
+    lists:map(fun(N) -> N + ((Index-1)*9) end,lists:seq(1,9)).
+
+-spec get_row(integer(), list()) -> list().
+get_row(Index,L) when Index > 0 ->
+    lists:map(fun(N) -> lists:nth(N,L) end,get_row(Index)).
+
+%% vertical
+-spec get_column(integer()) -> list().
+get_column(Index) when Index > 0 ->
+    lists:map(fun(N) -> Index + ((N-1)*9) end,lists:seq(1,9)).
+
+-spec get_column(integer(), list()) -> list().
+get_column(Index,L) when Index > 0 ->
+    lists:map(fun(N) -> lists:nth(N,L) end,get_column(Index)).
+
+%% 3*3 square
+square_start(N) when N > 0 ->
+    (((N-1) rem 3) * 3) + (((N-1) div 3) * 27).
+square_cell(N) when N > 0 ->
+    (((N-1) rem 3) + 1) + (((N-1) div 3) * 9).
+get_square(Index) when Index > 0 ->
+    lists:map(fun(N) -> square_start(Index) + square_cell(N) end,lists:seq(1,9)).
+get_square(Index,L) when Index > 0 ->
+    lists:map(fun(N) -> lists:nth(N,L) end,get_square(Index)).
+
+%% get board divided by method
+get_divided(Method, L) ->
+    lists:map(fun(X) -> (get_fun(Method))(X,L) end, lists:seq(1,9)).
+
+%% Pretty functions
+prettyboard(L) ->
+    lists:foreach(fun(R) ->
+        lists:foreach(fun(N) -> io:format("~p ",[N]) end, R),
+        io:format("~n",[])
+    end,si:get_divided(row,L)).

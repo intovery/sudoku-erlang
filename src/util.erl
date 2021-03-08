@@ -1,60 +1,51 @@
 -module(util).
--compile(export_all).
+-export([qsort/1,msort/1,chunks/2,half/1]).
 
-qsort([]) ->
-    [];
+-spec qsort(list()) -> list().
+qsort([]) -> [];
 qsort([Pivot|L]) ->
     qsort([X || X <- L, X < Pivot])
     ++ [Pivot] ++
     qsort([X || X <- L, X >= Pivot]).
 
-range(S,E) when S == E -> [];
-range(S,E) -> [S|range(S+1,E)].
+msort([]) -> [];
+msort([N]) -> [N];
+msort([N1,N2]) ->
+    merge([N1],[N2]);
+msort(L) ->
+    [L1,L2] = half(L),
+    merge(msort(L1),msort(L2)).
 
-reduce(_,Acc,[]) -> Acc;
-reduce(F,Acc,[H|T]) -> reduce(F,F(Acc,H),T).
+merge([],L2) -> L2;
+merge(L1,[]) -> L1;
+merge([H1|T1],[H2|T2]) ->
+    case H1 =< H2 of
+        true -> [H1 | merge(T1,[H2|T2])];
+        false -> [H2 | merge([H1|T1],T2)]
+    end.
 
+-spec replace(integer(),term(),list()) -> list().
 replace(N,D,L) ->
     lists:sublist(L,N-1) ++ [D] ++ lists:nthtail(N,L).
 
+-spec factorial(integer()) -> integer().
 factorial(0) -> 1;
 factorial(N) when N > 0 -> N * factorial(N-1).
 
+-spec perms(list()) -> list().
 perms([]) -> [[]];
 perms(L)  -> [[H|T] || H <- L, T <- perms(L--[H])].
 
-lists_to_map(L_key,L_values) when length(L_key) == length(L_values) ->
-    Len = length(L_key),
-    lists:map(
-        fun(N) ->
-            lists:map(fun(V) -> #{lists:nth(N+1,L_key)=>V} end,lists:nth(N+1,L_values))
-        end,util:range(0,Len)).
-
-key_list_match({A,L}) ->
-    lists:map(fun(X) -> #{A=>X} end,L).
-
-div_with_range(D, N) ->
-    lists:map(fun(X) -> (N div D) * X end,util:range(1,D+1)).
-
-lift(L) -> [[X] || X <- L].
-
-accfunc(Cond) ->
-    fun(D) -> accfunc(Cond,[D]) end.
-accfunc(Cond,Acc) ->
-    case Cond(Acc) of
-        true -> Acc;
-        false -> fun(X) -> accfunc(Cond,[X|Acc]) end
-    end.
-
 %% code from "stack overflow"
 %% https://stackoverflow.com/questions/12534898/splitting-a-list-in-equal-sized-chunks-in-erlang/15008490
+-spec chunks(list(),integer()) -> list().
 chunks(List,Len) ->
-  LeaderLength = case length(List) rem Len of
-      0 -> 0;
-      N -> Len - N
-  end,
-  Leader = lists:duplicate(LeaderLength,undefined),
-  chunks(Leader ++ lists:reverse(List),[],0,Len).
+    LeaderLength = case length(List) rem Len of
+        0 -> 0;
+        N -> Len - N
+    end,
+    Leader = lists:duplicate(LeaderLength,undefined),
+    chunks(Leader ++ lists:reverse(List),[],0,Len).
 
 chunks([],Acc,_,_) -> Acc;
 chunks([H|T],Acc,Pos,Max) when Pos==Max ->
@@ -64,17 +55,13 @@ chunks([H|T],[HAcc | TAcc],Pos,Max) ->
 chunks([H|T],[],Pos,Max) ->
     chunks(T,[[H]],Pos+1,Max).
 
-current_time() ->
-    {H,M,S} = time(),
-    timer:hms(H,M,S).
+-spec fibonacci(integer()) -> integer().
+fibonacci(0) -> 0;
+fibonacci(1) -> 1;
+fibonacci(N) when N > 1 ->
+    fibonacci(N-1) + fibonacci(N-2).
 
-measure_time(F) ->
-    Old = current_time(),
-    R = F(),
-    New = current_time(),
-    {(New - Old),R}.
-
-divide_conquer(Subject,F_divide,F_execute,F_combine) ->
-    L = F_divide(Subject),
-    io:format("LENGTH => ~p~n",[length(L)]),
-    F_combine(lists:map(fun(X) -> F_execute(X) end,L)).
+half([]) -> [];
+half(L) ->
+    Len = length(L) div 2,
+    [lists:sublist(L,Len),lists:sublist(L,Len+1,Len+1)].
