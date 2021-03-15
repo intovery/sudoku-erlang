@@ -1,5 +1,5 @@
 -module(util).
--export([qsort/1,msort/1,chunks/2,half/1]).
+-export([qsort/1,msort/1,chunks/2,half/1,perms/1]).
 
 -spec qsort(list()) -> list().
 qsort([]) -> [];

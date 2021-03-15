@@ -3,6 +3,8 @@
 -export([get/2,get_fun/1]).
 -compile(export_all).
 
+%% 
+
 %% check duplication
 is_duplicated(L) ->
     Origin = length(lists:filter(fun(X) -> X/=0 end,L)),
@@ -33,7 +35,7 @@ fill([0|Row_T],[Elems_H|Elems_T],Acc) ->
     fill(Row_T,Elems_T,[Elems_H|Acc]);
 fill([Row_H|Row_T],[Elems_H|Elems_T],Acc) ->
     fill(Row_T,[Elems_H|Elems_T],[Row_H|Acc]).
-
+ 
 match(Rows,Perms) ->
     util:reduce(fun(Acc,N) ->
         util:replace(N,fill(lists:nth(N,Rows),lists:nth(N,Perms)),Acc)
