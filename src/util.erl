@@ -1,5 +1,5 @@
 -module(util).
--export([qsort/1,msort/1,chunks/2,half/1,perms/1]).
+-export([qsort/1,msort/1,chunks/2,half/1,perms/1,integer_to_atom/1]).
 
 -spec qsort(list()) -> list().
 qsort([]) -> [];
@@ -65,3 +65,6 @@ half([]) -> [];
 half(L) ->
     Len = length(L) div 2,
     [lists:sublist(L,Len),lists:sublist(L,Len+1,Len+1)].
+
+integer_to_atom(I) when is_integer(I) ->
+    list_to_atom(integer_to_list(I)).

@@ -37,6 +37,7 @@ extract_grid(N,Board) ->
     ColList = lists:nth(((N-1) rem 3) + 1,L),
     extract([{Row,Col} || Row <- RowList, Col <- ColList],Board).
 
+
 %% index preset function
 index_preset(row,N) ->
     [{N,Col} || Col <- lists:seq(1,9)];
@@ -47,6 +48,7 @@ index_preset(grid,N) ->
     RowList = lists:nth(((N-1) div 3) + 1,L),
     ColList = lists:nth(((N-1) rem 3) + 1,L),
     [{Row,Col} || Row <- RowList, Col <- ColList].
+
 
 %% formatted printing function
 print(Board) ->
