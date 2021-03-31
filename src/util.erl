@@ -1,5 +1,5 @@
 -module(util).
--export([qsort/1,msort/1,chunks/2,half/1,perms/1,integer_to_atom/1]).
+-export([qsort/1,msort/1,chunks/2,half/1,perms/1,integer_to_atom/1,intersection/1,is_multiset/1]).
 
 -spec qsort(list()) -> list().
 qsort([]) -> [];
@@ -68,3 +68,20 @@ half(L) ->
 
 integer_to_atom(I) when is_integer(I) ->
     list_to_atom(integer_to_list(I)).
+
+is_multiset(L) ->
+    is_multiset(L,[]).
+
+is_multiset([],_) -> false;
+is_multiset([H|T],Acc) ->
+    case lists:member(H,Acc) of
+        true -> true;
+        false -> is_multiset(T,[H|Acc])
+    end.
+
+intersection(ListOfSet) ->
+    true = lists:all(fun(L) -> not is_multiset(L) end,ListOfSet),
+    lists:foldl(fun
+        (L,[]) -> L;
+        (L,Acc) -> [X || X <- L, Y <- Acc, X == Y]
+    end,[],ListOfSet).

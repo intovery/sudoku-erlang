@@ -1,134 +1,49 @@
 -module(solver).
--compile(export_all).
-
-testcase() ->
-    {[1,2,3,4,5,6,7],
-        [[3,5,6],
-        [1,4,7],
-        [2,3,6],
-        [1,4],
-        [2,7],
-        [4,5,7]]}.
-
-testcase(multiple) ->
-    {[1,2,3,4],
-        [[1,2],
-        [3,4],
-        [1],
-        [2],
-        [3],
-        [4],
-        [1,2,3,4]]
-    }.
-
-% frequency(Elements,L) ->
-%     Freq = maps:from_list(lists:map(fun(Elem) ->
-%         {Elem,0}
-%     end,Elements)),
-%     lists:foldl(fun(E,Acc) ->
-%         Acc#{E := (maps:get(E,Acc) + 1)}
-%     end,Freq,L).
-
-frequency(Elements,L) ->
-    Freq = maps:from_list([{E,0} || E <- Elements]),
-    lists:foldl(fun(X,Acc) ->
-        Acc#{X := (maps:get(X,Acc) + 1)}
-    end,Freq,lists:flatten(L)).
-
-frequency(L) ->
-    lists:map(fun(Element) ->
-        {Element,length([E || E <- L, E == Element])}
-    end,list_of_elements(L)).
-
-list_of_elements(L) ->
-    lists:foldl(fun(X,Acc) ->
-        case lists:member(X,Acc) of
-            true -> Acc;
-            false -> [X|Acc]
-        end
-    end,[],L).
-
-tag_index(L) ->
-    lists:map(fun({Idx,Suffix}) ->
-        {util:integer_to_atom(Idx),Suffix}
-    end,lists:zip(lists:seq(1,length(L)),L)).
-
-solve({L,Suffixes}) ->
-    Storage = spawn(solver,simple_storage,[[]]),
-    bruteforce(fun(R) -> Storage ! {append,R} end,tag_index(Suffixes),L),
-    fold_suffix_combinations(call_return(Storage)).
-
-solve_knuth({L,Suffixes}) ->
-    Storage = spawn(solver,simple_storage,[[]]),
-    knuth(fun(R) -> Storage ! {append,R} end,tag_index(Suffixes),L),
-    fold_suffix_combinations(call_return(Storage)).
-
-bruteforce(F,L_Suffix,L_Element) ->
-    bruteforce(F,[],L_Suffix,L_Element).
-
-bruteforce(F,Acc_Suffix,L_Suffix,L_Element) ->
-    case is_exact_cover(Acc_Suffix,L_Element) of
-        true -> F([L || {_,L} <- Acc_Suffix]);
-        false ->
-            lists:foreach(fun(Suffix) ->
-                bruteforce(F,[Suffix|Acc_Suffix],lists:delete(Suffix,L_Suffix),L_Element)
-            end,L_Suffix)
-    end.
-
-knuth(F,L_Suffix,L_Element) ->
-    knuth(F,[],L_Suffix,L_Element).
-
-knuth(F,Acc_Suffix,[],L_Element) ->
-    case is_exact_cover(Acc_Suffix,L_Element) of
-        true -> F([L || {_,L} <- Acc_Suffix]);
-        false -> ok
-    end;
-
-knuth(F,Acc_Suffix,L_Suffix,L_Element) ->
-    case is_exact_cover(Acc_Suffix,L_Element) of
-        true -> F([L || {_,L} <- Acc_Suffix]);
-        false ->
-            Frequency = frequency(lists:merge([X || {_,X} <- L_Suffix])),
-            Min = lists:min([Freq || {_,Freq} <- Frequency]),
-            MinElements = [{E,Freq} || {E,Freq} <- Frequency, Freq == Min],
-            Filtered = lists:filter(fun({_,G}) ->
-                lists:all(fun(N) ->
-                    not lists:member(N,G)
-                end,MinElements)
-            end,L_Suffix),
-            lists:foreach(fun(Suffix) ->
-                knuth(F,[Suffix|Acc_Suffix],lists:delete(Suffix,Filtered),L_Element)
-            end,Filtered)
-    end.
-
-is_exact_cover(Acc_Group,L_Element) ->
-    {_,Flatten} = flatten_group(Acc_Group),
-    lists:sort(Flatten) == lists:sort(L_Element).
+-export([constraints/0,constraints/1,possible_case/1]).
 
 
-flatten_group(L_Group) ->
-    {lists:flatten([G || {G,_} <- L_Group]),lists:flatten([E || {_,E} <- L_Group])}.
+constraints() ->
+    lists:foldl(fun(Method,Acc) ->
+        Acc ++ constraints(Method)
+    end,[],[row_col,row_val,col_val,box_Val]).
 
-simple_storage(State) ->
-    receive
-        {append,D} -> simple_storage([D|State]);
-        {return,Pid} ->
-            Pid ! {result,State},
-            ok
-    end.
+constraints(row_col) ->
+    P = lists:seq(1,9),
+    [fun(L) -> lists:any(fun({Row,Col,_}) -> (Row == R) andalso (Col == C) end,L) end || R <- P, C <- P];
 
-call_return(Pid) ->
-    Pid ! {return,self()},
-    receive
-        {result,R} -> R;
-        _ -> err
-    end.
+constraints(row_val) ->
+    P = lists:seq(1,9),
+    [fun(L) -> lists:any(fun({Row,_,Val}) -> (Row == R) andalso (Val == V) end,L) end || R <- P, V <- P];
 
-fold_suffix_combinations(L) ->
-    lists:foldl(fun(X,Acc) ->
-        Sorted = lists:sort(X),
-        case lists:member(Sorted,Acc) of
-            true -> Acc;
-            false -> [Sorted | Acc]
-        end
-    end,[],L).
+constraints(col_val) ->
+    P = lists:seq(1,9),
+    [fun(L) -> lists:any(fun({_,Col,Val}) -> (Col == C) andalso (Val == V) end,L) end || C <- P, V <- P];
+
+constraints(box_val) ->
+    P = lists:seq(1,9),
+    IsOnBox = fun(N,Row,Col) ->
+        Preset = sudoku:index_preset(box,N),
+        lists:any(fun({R,C}) -> (R == Row) andalso (C == Col) end,Preset)
+    end,
+    [fun(L) ->
+        lists:any(fun({Row,Col,Val}) -> IsOnBox(B,Row,Col) andalso (Val == V) end,L) end || B <- P, V <- P].
+
+possible_case(Board) ->
+    lists:flatten(lists:map(fun(N) ->
+        possible_case_row(N,Board)
+    end,lists:seq(1,9))).
+
+possible_case_row(N,Board) ->
+    Row = sudoku:extract_row(N,Board),
+    [{N,C,V} || C <- missing_column(Row), V <- missing_value(Row)].
+possible_case_column(N,Board) ->
+    Column = sudoku:extract_column(N,Board),
+    [{R,N,V} || R <- missing_row(Column), V <- missing_value(Column)].
+
+
+missing_row(L) ->
+    lists:foldl(fun({R,_,_},Acc) -> lists:delete(R,Acc) end,lists:seq(1,9),L).
+missing_column(L) ->
+    lists:foldl(fun({_,C,_},Acc) -> lists:delete(C,Acc) end,lists:seq(1,9),L).
+missing_value(L) ->
+    lists:foldl(fun({_,_,V},Acc) -> lists:delete(V,Acc) end,lists:seq(1,9),L).

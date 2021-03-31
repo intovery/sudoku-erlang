@@ -14,6 +14,10 @@ convert(CSV) ->
     end,[],lists:zip(lists:seq(1,9),CSV)).
 
 
+read_board(Name) ->
+    convert(csv:read_csv(Name)).
+
+
 %% extract functions
 extract({TargetRow,TargetColumn},Board) ->
     lists:filter(fun({Row,Column,_}) ->
@@ -31,7 +35,7 @@ extract_row(N,Board) ->
 extract_column(N,Board) ->
     TargetList = lists:map(fun(Row) -> {Row,N} end,lists:seq(1,9)),
     extract(TargetList,Board).
-extract_grid(N,Board) ->
+extract_box(N,Board) ->
     L = [[1,2,3],[4,5,6],[7,8,9]],
     RowList = lists:nth(((N-1) div 3) + 1,L),
     ColList = lists:nth(((N-1) rem 3) + 1,L),
@@ -40,10 +44,10 @@ extract_grid(N,Board) ->
 
 %% index preset function
 index_preset(row,N) ->
-    [{N,Col} || Col <- lists:seq(1,9)];
+    [{N,Col} || Col <- lists:seq(1,9)]; 
 index_preset(column,N) ->
     [{Row,N} || Row <- lists:seq(1,9)];
-index_preset(grid,N) ->
+index_preset(box,N) ->
     L = [[1,2,3],[4,5,6],[7,8,9]],
     RowList = lists:nth(((N-1) div 3) + 1,L),
     ColList = lists:nth(((N-1) rem 3) + 1,L),
@@ -66,3 +70,7 @@ print(Board) ->
         end,lists:seq(1,9)),
         io:format("~n")
     end,lists:seq(1,9)).
+
+
+is_45(L) ->
+    lists:foldl(fun({_,_,V},Acc) -> Acc + V end,0,L) == 45.

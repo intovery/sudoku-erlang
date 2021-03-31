@@ -60,7 +60,7 @@ build(Rows,[],{_Cur,Acc_Perms},Acc_Results) ->
         false -> Acc_Results
     end;
 build(Rows,[H|T],{Cur,Acc_Perms},Acc_Results) ->
-    util:reduce(fun(List_Result,Perm) ->
+    lists:foldl(fun(Perm,List_Result) ->
         P = lists:reverse([Perm|Acc_Perms]),
         case is_verified(lists:flatten(match(Rows,P))) of
             true -> build(Rows,T,{Cur+1,[Perm|Acc_Perms]},List_Result);
