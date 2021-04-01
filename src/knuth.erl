@@ -20,15 +20,18 @@ knuth(F,Acc,Evaluations,Cons) ->
         true -> F([G || {G,_} <- Acc]);
         false ->
             % PC = PassedConstraint
-            LeastPC = lists:nth(1,least_passed_constraints(Evaluations,Cons)),
-            FilteredGroups = lists:filter(fun({_,Cs}) -> lists:member(LeastPC,Cs) end,Evaluations),
-            lists:foreach(fun({Group,PCs}) ->
-                NextEvaluations = lists:filter(fun({_,Cs}) -> 
-                    not lists:any(fun(PC) -> lists:member(PC,Cs) end,PCs)
-                end,Evaluations),
-                NextCons = remove(PCs,Cons),
-                knuth(F,[{Group,PCs} | Acc],NextEvaluations,NextCons)
-            end,FilteredGroups)
+            case least_passed_constraints(Evaluations,Cons) of
+                [] -> ok;
+                [LeastPC|_] ->
+                    FilteredGroups = lists:filter(fun({_,Cs}) -> lists:member(LeastPC,Cs) end,Evaluations),
+                    lists:foreach(fun({Group,PCs}) ->
+                        NextEvaluations = lists:filter(fun({_,Cs}) -> 
+                            not lists:any(fun(PC) -> lists:member(PC,Cs) end,PCs)
+                        end,Evaluations),
+                        NextCons = remove(PCs,Cons),
+                        knuth(F,[{Group,PCs} | Acc],NextEvaluations,NextCons)
+                    end,FilteredGroups)
+            end
     end.
 
 

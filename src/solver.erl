@@ -1,6 +1,15 @@
 -module(solver).
--export([constraints/0,constraints/1,possible_case/1]).
+-export([solve/1,solve/2,constraints/0,constraints/1,possible_case/1]).
 
+solve(Name) ->
+    Board = sudoku:read_board(Name),
+    PossibleCases = possible_case(Board),
+    knuth:knuth({[Board | [[X] || X <- PossibleCases]],constraints()}).
+
+solve(F,Name) ->
+    Board = sudoku:read_board(Name),
+    PossibleCases = possible_case(Board),
+    knuth:knuth(F,{[Board | [[X] || X <- PossibleCases]],constraints()}).
 
 constraints() ->
     lists:foldl(fun(Method,Acc) ->
