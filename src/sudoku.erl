@@ -8,7 +8,7 @@ convert(CSV) ->
         Board ++ lists:foldl(fun({ColumnIndex,Value},Row) ->
             case list_to_integer(Value) of
                 0 -> Row;
-                V -> Row ++ [{RowIndex,ColumnIndex,V}]
+                V -> Row ++ [{{RowIndex,ColumnIndex},V}]
             end
         end,[],lists:zip(lists:seq(1,9),ValueList))
     end,[],lists:zip(lists:seq(1,9),CSV)).
@@ -20,7 +20,7 @@ read_board(Name) ->
 
 %% extract functions
 extract({TargetRow,TargetColumn},Board) ->
-    lists:filter(fun({Row,Column,_}) ->
+    lists:filter(fun({{Row,Column},_}) ->
         (Row == TargetRow) andalso (Column == TargetColumn)
     end,Board);
 
@@ -57,9 +57,9 @@ index_preset(box,N) ->
 %% formatted printing function
 print(Board) ->
     F = fun(Row,Column) ->
-        Fun = fun({R,C,_}) -> (R == Row) andalso (C == Column) end,
+        Fun = fun({{R,C},_}) -> (R == Row) andalso (C == Column) end,
         case lists:search(Fun,Board) of
-            {value,{_,_,Value}} -> Value;
+            {value,{_,Value}} -> Value;
             false -> 0
         end
     end,
@@ -73,4 +73,4 @@ print(Board) ->
 
 
 is_45(L) ->
-    lists:foldl(fun({_,_,V},Acc) -> Acc + V end,0,L) == 45.
+    lists:foldl(fun({_,V},Acc) -> Acc + V end,0,L) == 45.
