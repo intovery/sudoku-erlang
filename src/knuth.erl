@@ -61,6 +61,7 @@ reset_knuth_ETS(_Ref) ->
     ets:delete(process_to_knuth_atom(self())),
     ets:new(process_to_knuth_atom(self()),[bag,named_table]).
 
+
 -spec least_passed_constraints(list(evaluation()),list(constraint())) -> list(constraint()).
 least_passed_constraints(Evaluations,Constraints) ->
     PassedConstraints = lists:flatten([Cs || {_,Cs} <- Evaluations]),
@@ -74,13 +75,16 @@ least_passed_constraints(Evaluations,Constraints) ->
 -spec frequency(list(),term()) -> integer().
 frequency(L,Target) -> length([E || E <- L, E == Target]).
 
+
 -spec remove(list(),list()) -> list().
 remove(X,L) -> [Y || Y <- L, not lists:member(Y,X)].
+
 
 -spec is_cover(list(group()),list(constraint())) -> boolean().
 is_cover(Acc,Cons) ->
     L = lists:flatten([C || {_,C} <- Acc]),
     lists:all(fun(C) -> lists:member(C,L) end,Cons).
+
 
 -spec evaluate(list(group()),list(constraint())) -> list(evaluation()).
 evaluate(Gs,Cons) ->
