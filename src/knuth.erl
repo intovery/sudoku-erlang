@@ -11,6 +11,8 @@
 -type evaluation() :: {group(),list(constraint())}.
 
 -spec knuth(exact_cover_request()) -> list(group()).
+
+
 knuth({Groups,Cons}) ->
     reset_knuth_ETS(ets:whereis(process_to_knuth_atom(self()))),
     F = fun(R) ->
