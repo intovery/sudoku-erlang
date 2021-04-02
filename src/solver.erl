@@ -4,7 +4,8 @@
 solve(Name) ->
     Board = sudoku:read_board(Name),
     PossibleCases = possible_case(Board),
-    knuth:knuth({[Board | [[X] || X <- PossibleCases]],constraints()}).
+    Solved = knuth:knuth({[Board | [[X] || X <- PossibleCases]],constraints()}),
+    lists:map(fun(L) -> lists:flatten(L) end,Solved).
 
 solve(F,Name) ->
     Board = sudoku:read_board(Name),
