@@ -25,7 +25,12 @@ Sudoku Interpreter implemented by Erlang.
   [{{...},...}],
   [{...}],
   [...]|...]]
-2> timer:tc(fun() -> solver:solve("./data/data.csv") end).
+  
+2> solver:solve(fun(R) -> io:format("LENGTH => ~p~n",[length(R)]) end,"./data/data.csv").
+LENGTH => 52
+ok
+
+3> timer:tc(fun() -> solver:solve("./data/data.csv") end).
 {110000,
  [[[{{9,7},1}],
    [{{9,6},6}],
