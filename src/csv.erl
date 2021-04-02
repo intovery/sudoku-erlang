@@ -1,7 +1,10 @@
 -module(csv).
 -export([read_csv/1,parser/2]).
 
+-type row() :: list(string()).
+
 %% convert file binary to list
+-spec read_csv(string()) -> list(string()).
 read_csv(Name) ->
     {ok,Bin} = file:read_file(Name),
     L = string:tokens(binary_to_list(Bin),","),
@@ -21,6 +24,7 @@ read_csv(Name) ->
     end.
         
 
+-spec parser(list(string()),list(row())) -> ok.
 parser(RowAcc,Stored) ->
     receive
         {add,Value} ->

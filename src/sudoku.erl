@@ -13,7 +13,6 @@ convert(CSV) ->
         end,[],lists:zip(lists:seq(1,9),ValueList))
     end,[],lists:zip(lists:seq(1,9),CSV)).
 
-
 read_board(Name) ->
     convert(csv:read_csv(Name)).
 
