@@ -1,6 +1,13 @@
 -module(knuth).
 -export([knuth/1,knuth/2]).
 
+-export_type([
+    group/0,
+    constraint/0,
+    exact_cover_request/0,
+    treatment_fun/0,
+    evaluation/0]).
+
 -type group() :: list().
 -type constraint() :: fun((list()) -> boolean()).
 
@@ -11,8 +18,6 @@
 -type evaluation() :: {group(),list(constraint())}.
 
 -spec knuth(exact_cover_request()) -> list(group()).
-
-
 knuth({Groups,Cons}) ->
     reset_knuth_ETS(ets:whereis(process_to_knuth_atom(self()))),
     F = fun(R) ->

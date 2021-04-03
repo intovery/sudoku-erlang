@@ -1,7 +1,8 @@
 -module(testcase).
--export([exact_cover/0,twobytwo/0,sudoku/0]).
+-export([exact_cover/0,twobytwo/0,sudoku/0,sudoku/1]).
 
-%% Finding exact cover
+
+-spec exact_cover() -> {list(knuth:group()),list(knuth:constraint())}.
 exact_cover() ->
     TC = 
         [[3,5,6],
@@ -13,6 +14,7 @@ exact_cover() ->
     Cons = [fun(L) -> lists:any(fun(N) -> N == V end,L) end || V <- [1,2,3,4,5,6,7]],
     {TC,Cons}.
 
+-spec twobytwo() -> {list(knuth:group()),list(knuth:constraint())}.
 %% Find correct 2x2 sudoku board
 twobytwo() ->
     TC = 
@@ -38,7 +40,9 @@ cons_3() -> [fun(L) -> lists:any(cons_col_val(C,V),L) end || C <- [1,2], V <- [1
 
 %% Finding correct 9x9 sudoku with pre-written sudoku board
 %% Add pre-written board(CSV) in "./data" folder
+-spec sudoku() -> {list(knuth:group()),list(knuth:constraint())}.
 sudoku() -> sudoku("./data/data.csv").
+-spec sudoku(string()) -> {list(knuth:group()),list(knuth:constraint())}.
 sudoku(Name) ->
     Board = sudoku:read_board(Name),
     PossibleCases = lists:flatten(lists:map(fun(N) ->
