@@ -1,15 +1,14 @@
 %% -*- erlang -*-
 %%! -pa _build/default/lib/sudoku/ebin
 main([Path]) ->
-    Solved = solver:solve(Path),
+    {Time,Solved} = timer:tc(fun() -> solver:solve(Path) end),
+    io:format("~p~n",[Time]),
     print_results(Solved),
     halt(1);
 
-main(_) ->
-    main().
-
 main() ->
     usage().
+
 
 print_results(Solved) ->
     lists:foreach(fun({Idx,Board}) ->
