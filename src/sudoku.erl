@@ -21,10 +21,10 @@
     suffix/0]).
 
 -type index() :: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9.
-
 -type index_row() :: index().
 -type index_column() :: index().
 -type index_box() :: index().
+
 -type value() :: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9.
 
 -type cell() :: {index_row(),index_column(),value()}.

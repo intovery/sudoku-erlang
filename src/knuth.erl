@@ -1,5 +1,5 @@
 -module(knuth).
--export([knuth/1,knuth/2]).
+-export([knuth/1]).
 
 -export_type([
     group/0,
@@ -17,54 +17,30 @@
 
 -type evaluation() :: {group(),list(constraint())}.
 
--spec knuth(exact_cover_request()) -> list(group()).
+
+-spec knuth(exact_cover_request()) -> ok.
 knuth({Groups,Cons}) ->
-    reset_knuth_ETS(ets:whereis(process_to_knuth_atom(self()))),
-    F = fun(R) ->
-            ets:insert(process_to_knuth_atom(self()),{result,R}) 
-        end,
-    knuth(F,{Groups,Cons}),
-    lists:map(fun({result,L}) ->
-        L
-    end,ets:lookup(process_to_knuth_atom(self()),result)).
+    knuth([],evaluate(Groups,Cons),Cons).
 
--spec knuth(treatment_fun(),exact_cover_request()) -> ok.
-knuth(F,{Groups,Cons}) ->
-    knuth(F,[],evaluate(Groups,Cons),Cons).
-
--spec knuth(treatment_fun(),list(group()),list(evaluation()),list(constraint())) -> ok.
-knuth(F,Acc,Evaluations,Cons) ->
+-spec knuth(list(group()),list(evaluation()),list(constraint())) -> ok.
+knuth(Acc,Evaluations,Cons) ->
     case is_cover(Acc,Cons) of
-        true -> F([G || {G,_} <- Acc]);
+        true -> [{result,[G || {G,_} <- Acc]}];
         false ->
             % PC = PassedConstraint
             case least_passed_constraints(Evaluations,Cons) of
                 [] -> ok;
                 [LeastPC|_] ->
                     FilteredGroups = lists:filter(fun({_,Cs}) -> lists:member(LeastPC,Cs) end,Evaluations),
-                    lists:foreach(fun({Group,PCs}) ->
+                    lists:foldl(fun({Group,PCs},ResultAcc) ->
                         NextEvaluations = lists:filter(fun({_,Cs}) -> 
                             not lists:any(fun(PC) -> lists:member(PC,Cs) end,PCs)
                         end,Evaluations),
                         NextCons = remove(PCs,Cons),
-                        knuth(F,[{Group,PCs} | Acc],NextEvaluations,NextCons)
-                    end,FilteredGroups)
+                        ResultAcc ++ knuth([{Group,PCs} | Acc],NextEvaluations,NextCons)
+                    end,[],FilteredGroups)
             end
     end.
-
-
--spec process_to_knuth_atom(pid()) -> atom().
-process_to_knuth_atom(Pid) ->
-    list_to_atom(pid_to_list(Pid) ++ "_knuth").
-
-
--spec reset_knuth_ETS(undefined | reference()) -> atom().
-reset_knuth_ETS(undefined) ->
-    ets:new(process_to_knuth_atom(self()),[bag,named_table]);
-
-reset_knuth_ETS(_Ref) -> 
-    ets:delete(process_to_knuth_atom(self())),
-    ets:new(process_to_knuth_atom(self()),[bag,named_table]).
 
 
 -spec least_passed_constraints(list(evaluation()),list(constraint())) -> list(constraint()).

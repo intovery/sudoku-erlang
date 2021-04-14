@@ -1,7 +1,6 @@
 -module(solver).
 -export([
     solve/1,
-    solve/2,
     constraints/0,
     constraints/1,
     possible_case/1]).
@@ -11,14 +10,8 @@
 solve(Name) ->
     Board = sudoku:read_board(Name),
     PossibleCases = possible_case(Board),
-    Solved = knuth:knuth({[Board | [[X] || X <- PossibleCases]],constraints()}),
-    lists:map(fun(L) -> lists:flatten(L) end,Solved).
+    knuth:knuth({[Board | [[X] || X <- PossibleCases]],constraints()}).
 
--spec solve(knuth:treatment_fun(),string()) -> board().
-solve(F,Name) ->
-    Board = sudoku:read_board(Name),
-    PossibleCases = possible_case(Board),
-    knuth:knuth(F,{[Board | [[X] || X <- PossibleCases]],constraints()}).
 
 -spec constraints() -> list(knuth:constraint()).
 constraints() ->
@@ -66,12 +59,14 @@ possible_case_column(N,Board) ->
     [{{R,N},V} || R <- missing_row(Column), V <- missing_value(Column)].
 
 
--spec missing_row(list(cell())) -> list(sudoku:index_row()).
+-spec missing_row(list(sudoku:cell())) -> list(sudoku:index_row()).
 missing_row(L) ->
     lists:foldl(fun({{R,_},_},Acc) -> lists:delete(R,Acc) end,lists:seq(1,9),L).
--spec missing_column(list(cell())) -> list(sudoku:index_column()).
+-spec missing_column(list(sudoku:cell())) -> list(sudoku:index_column()).
+
 missing_column(L) ->
     lists:foldl(fun({{_,C},_},Acc) -> lists:delete(C,Acc) end,lists:seq(1,9),L).
--spec missing_value(list(cell())) -> list(sudoku:value()).
+
+-spec missing_value(list(sudoku:cell())) -> list(sudoku:value()).
 missing_value(L) ->
     lists:foldl(fun({_,V},Acc) -> lists:delete(V,Acc) end,lists:seq(1,9),L).
